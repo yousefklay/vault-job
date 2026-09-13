@@ -346,6 +346,7 @@
 </style>
 </head>
 <body>
+<audio id="menuMusic" src="bella-ciao.mp3" loop preload="none"></audio>
 <div class="bg-stripes"></div>
 <div class="bg-spot"></div>
 <div class="bg-beam"></div>
@@ -849,6 +850,11 @@
   function toggleMute(){
     muted = !muted;
     document.getElementById('muteBtn').textContent = muted ? '🔇' : '🔊';
+    const menuMusic = document.getElementById('menuMusic');
+    if(menuMusic){
+      if(muted) menuMusic.pause();
+      else if(MENU_MUSIC_SCREENS.some(id=>document.getElementById(id).classList.contains('active'))) menuMusic.play().catch(()=>{});
+    }
   }
 
   // Universal button feedback: every button/CTA in the game gets a click sound + ripple,
@@ -882,11 +888,22 @@
   }
 
   // ---------- FLOW ----------
+  // Menu screens play the real Bella Ciao track; the quiz itself stays silent for now
+  // (a separate track for the questioning phase can be dropped in later).
+  const MENU_MUSIC_SCREENS = ['screen-landing','screen-mode','screen-setup','screen-online-hub','screen-online-host','screen-online-join','screen-online-lobby'];
   function swapScreen(id){
     document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
     document.getElementById(id).classList.add('active');
+    const menuMusic = document.getElementById('menuMusic');
+    if(menuMusic){
+      if(MENU_MUSIC_SCREENS.includes(id)){
+        if(!muted && menuMusic.paused){ menuMusic.play().catch(()=>{}); }
+      } else {
+        menuMusic.pause();
+      }
+    }
   }
-  function startFlow(){ ensureAudio(); startMusic(); swapScreen('screen-mode'); }
+  function startFlow(){ ensureAudio(); swapScreen('screen-mode'); }
   function chooseMode(m){
     mode = m;
     document.getElementById('setupSolo').style.display = m==='solo' ? 'block' : 'none';

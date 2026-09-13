@@ -796,6 +796,24 @@
     seq.forEach((f,i)=>{ envTone(f, t + i*0.13, .28, 'triangle', .06); });
   }
 
+  // Synthesized heavy vault door: low mechanical thud, metal clank, and gear-release hiss —
+  // built from the same primitives above, no external audio file needed.
+  function playVaultUnlock(){
+    ensureAudio();
+    const t = audioCtx.currentTime;
+    // deep sub-bass impact, pitch dropping like a heavy bolt releasing
+    envTone(90, t, .5, 'sawtooth', .16, 32);
+    envTone(60, t + 0.02, .6, 'sine', .14, 28);
+    // metallic clank on top of the impact
+    noiseBurst(t + 0.01, .12, .12, 2600);
+    noiseBurst(t + 0.03, .08, .08, 4200);
+    // second smaller clunk as the door swings open
+    envTone(140, t + 0.32, .22, 'square', .07, 90);
+    noiseBurst(t + 0.33, .06, .06, 1800);
+    // long low mechanical release hiss
+    noiseBurst(t + 0.4, .5, .04, 900);
+  }
+
   const bassPattern = [110, 130.81, 146.83, 164.81, 130.81, 110, 98, 87.31]; // moody walking bass, A minor-ish
   function scheduleMusic(){
     while(nextNoteTime < audioCtx.currentTime + 0.15){
@@ -1063,7 +1081,8 @@
     if(mode==='online' && window.onOnlineGameFinished){ window.onOnlineGameFinished(onlineScore); }
     swapScreen('screen-results');
     stopMusic();
-    playFanfare();
+    playVaultUnlock();
+    setTimeout(playFanfare, 750);
   }
 </script>
 

@@ -480,7 +480,8 @@
     <label class="field-label" data-en="Your Name" data-ar="اسمك">Your Name</label>
     <input type="text" id="joinPlayerName" data-ph-en="e.g. Sara" data-ph-ar="مثال: سارة" placeholder="e.g. Sara">
     <label class="field-label" data-en="Search by Lobby Name or Number" data-ar="ابحث باسم الغرفة أو رقمها">Search by Lobby Name or Number</label>
-    <input type="text" id="joinSearch" data-ph-en="e.g. Friday Crew or 4821" data-ph-ar="مثال: عصابة الجمعة أو 4821" placeholder="e.g. Friday Crew or 4821" oninput="onSearchLobbies()">
+    <input type="text" id="joinSearch" data-ph-en="e.g. Friday Crew or 4821" data-ph-ar="مثال: عصابة الجمعة أو 4821" placeholder="e.g. Friday Crew or 4821" oninput="onSearchLobbies()" onkeydown="if(event.key==='Enter') onSearchLobbies();">
+    <button class="primary" style="margin-bottom:10px;" onclick="onSearchLobbies()" data-en="Search" data-ar="بحث">Search</button>
     <div id="lobbySearchResults" style="margin-bottom:10px;"></div>
     <div id="joinPassBox" style="display:none;">
       <label class="field-label" data-en="Lobby Password" data-ar="كلمة سر الغرفة">Lobby Password</label>

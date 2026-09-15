@@ -904,6 +904,23 @@
     }
   }
   function startFlow(){ ensureAudio(); swapScreen('screen-mode'); }
+
+  // Belt-and-suspenders fix for strict mobile autoplay blocking: some browsers only
+  // unlock audio on the very first raw touch/click anywhere on the page, even if
+  // swapScreen() already tried. This catches that first interaction and retries.
+  let audioUnlocked = false;
+  function unlockMenuMusicOnce(){
+    if(audioUnlocked) return;
+    audioUnlocked = true;
+    const menuMusic = document.getElementById('menuMusic');
+    const current = document.querySelector('.screen.active');
+    if(menuMusic && !muted && current && MENU_MUSIC_SCREENS.includes(current.id) && menuMusic.paused){
+      menuMusic.play().catch(()=>{});
+    }
+  }
+  document.addEventListener('click', unlockMenuMusicOnce, { once:true, capture:true });
+  document.addEventListener('touchstart', unlockMenuMusicOnce, { once:true, capture:true });
+  window.addEventListener('DOMContentLoaded', ()=>{ swapScreen('screen-landing'); });
   function chooseMode(m){
     mode = m;
     document.getElementById('setupSolo').style.display = m==='solo' ? 'block' : 'none';

@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="en" dir="ltr" id="htmlRoot">
-<head>
+<head><!-- PIPELINE TEST MARKER -->
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="#0A0A0B">
@@ -14,7 +14,7 @@
 <title>The Vault Job — Escape The Room Jordan</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Inter:wght@400;500;600&family=Cairo:wght@600;700&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Inter:wght@400;500;600&family=Cairo:wght@600;700&family=Tajawal:wght@400;500;700&family=Bebas+Neue&display=swap" rel="stylesheet">
 <style>
   :root{
     --bg:#0A0A0B; --yellow:#F4C41C; --yellow-bright:#FFDD44;
@@ -159,10 +159,11 @@
   .icon-btn:active, .lang-toggle:active{ transform:scale(.92); }
 
   h1{
-    font-family:'Oswald',sans-serif; font-weight:700; text-transform:uppercase; letter-spacing:.02em;
-    font-size:25px; line-height:1.15; margin:0 0 12px; color:var(--yellow-bright);
+    font-family:'Bebas Neue','Oswald',sans-serif; font-weight:400; text-transform:uppercase; letter-spacing:.04em;
+    font-size:34px; line-height:1.05; margin:0 0 12px; color:var(--yellow-bright);
+    text-shadow:0 0 18px #F4C41C4d, 0 2px 0 #00000080;
   }
-  [dir="rtl"] h1{ font-family:'Cairo',sans-serif; font-size:23px; text-transform:none; }
+  [dir="rtl"] h1{ font-family:'Cairo',sans-serif; font-size:23px; text-transform:none; letter-spacing:0; text-shadow:none; }
 
   .stage-label{ font-size:12px; color:var(--yellow); margin-bottom:8px; letter-spacing:.1em; text-transform:uppercase; font-weight:600; }
   [dir="rtl"] .stage-label{ letter-spacing:0; text-transform:none; }
@@ -295,6 +296,15 @@
   }
   [dir="rtl"] a.cta{ font-family:'Cairo',sans-serif; text-transform:none; }
 
+  /* Universal button feel: every clickable control gets the same press animation */
+  button, a.cta{ position:relative; overflow:hidden; transition:transform .08s ease, filter .08s ease; }
+  button:active, a.cta:active{ transform:scale(.95); filter:brightness(1.2); }
+  .btn-ripple{
+    position:absolute; border-radius:50%; background:#ffffff55; pointer-events:none;
+    transform:translate(-50%,-50%) scale(0); animation:rippleGrow .5s ease-out forwards;
+  }
+  @keyframes rippleGrow{ to{ transform:translate(-50%,-50%) scale(1); opacity:0; } }
+
   .lobby-player-row{
     display:flex; justify-content:space-between; align-items:center; padding:9px 12px;
     background:#00000040; border:1px solid #ffffff18; border-radius:5px; margin-bottom:6px; font-size:13.5px;
@@ -336,6 +346,7 @@
 </style>
 </head>
 <body>
+<audio id="menuMusic" src="bella-ciao.mp3" loop preload="none"></audio>
 <div class="bg-stripes"></div>
 <div class="bg-spot"></div>
 <div class="bg-beam"></div>
@@ -470,7 +481,8 @@
     <label class="field-label" data-en="Your Name" data-ar="اسمك">Your Name</label>
     <input type="text" id="joinPlayerName" data-ph-en="e.g. Sara" data-ph-ar="مثال: سارة" placeholder="e.g. Sara">
     <label class="field-label" data-en="Search by Lobby Name or Number" data-ar="ابحث باسم الغرفة أو رقمها">Search by Lobby Name or Number</label>
-    <input type="text" id="joinSearch" data-ph-en="e.g. Friday Crew or 4821" data-ph-ar="مثال: عصابة الجمعة أو 4821" placeholder="e.g. Friday Crew or 4821" oninput="onSearchLobbies()">
+    <input type="text" id="joinSearch" data-ph-en="e.g. Friday Crew or 4821" data-ph-ar="مثال: عصابة الجمعة أو 4821" placeholder="e.g. Friday Crew or 4821" oninput="onSearchLobbies()" onkeydown="if(event.key==='Enter') onSearchLobbies();">
+    <button class="primary" style="margin-bottom:10px;" onclick="onSearchLobbies()" data-en="Search" data-ar="بحث">Search</button>
     <div id="lobbySearchResults" style="margin-bottom:10px;"></div>
     <div id="joinPassBox" style="display:none;">
       <label class="field-label" data-en="Lobby Password" data-ar="كلمة سر الغرفة">Lobby Password</label>
@@ -736,7 +748,7 @@
     langBtn.textContent = lang==='en' ? 'عربي' : 'English';
     if(document.getElementById('screen-quiz').classList.contains('active')) renderQuestion(true);
   }
-  langBtn.addEventListener('click', ()=>{ playClick(); lang = lang==='en' ? 'ar' : 'en'; applyLang(); });
+  langBtn.addEventListener('click', ()=>{ lang = lang==='en' ? 'ar' : 'en'; applyLang(); });
   applyLang();
 
   // ---------- SOUND (fully synthesized — no external files to break or license) ----------
@@ -796,6 +808,24 @@
     seq.forEach((f,i)=>{ envTone(f, t + i*0.13, .28, 'triangle', .06); });
   }
 
+  // Synthesized heavy vault door: low mechanical thud, metal clank, and gear-release hiss —
+  // built from the same primitives above, no external audio file needed.
+  function playVaultUnlock(){
+    ensureAudio();
+    const t = audioCtx.currentTime;
+    // deep sub-bass impact, pitch dropping like a heavy bolt releasing
+    envTone(90, t, .5, 'sawtooth', .16, 32);
+    envTone(60, t + 0.02, .6, 'sine', .14, 28);
+    // metallic clank on top of the impact
+    noiseBurst(t + 0.01, .12, .12, 2600);
+    noiseBurst(t + 0.03, .08, .08, 4200);
+    // second smaller clunk as the door swings open
+    envTone(140, t + 0.32, .22, 'square', .07, 90);
+    noiseBurst(t + 0.33, .06, .06, 1800);
+    // long low mechanical release hiss
+    noiseBurst(t + 0.4, .5, .04, 900);
+  }
+
   const bassPattern = [110, 130.81, 146.83, 164.81, 130.81, 110, 98, 87.31]; // moody walking bass, A minor-ish
   function scheduleMusic(){
     while(nextNoteTime < audioCtx.currentTime + 0.15){
@@ -820,11 +850,35 @@
   function toggleMute(){
     muted = !muted;
     document.getElementById('muteBtn').textContent = muted ? '🔇' : '🔊';
+    const menuMusic = document.getElementById('menuMusic');
+    if(menuMusic){
+      if(muted) menuMusic.pause();
+      else if(MENU_MUSIC_SCREENS.some(id=>document.getElementById(id).classList.contains('active'))) menuMusic.play().catch(()=>{});
+    }
   }
 
+  // Universal button feedback: every button/CTA in the game gets a click sound + ripple,
+  // with no need to touch each individual onclick handler.
+  document.addEventListener('click', function(e){
+    const el = e.target.closest('button, a.cta');
+    if(!el) return;
+    if(!el.classList.contains('opt-btn')){ // answer buttons already play their own correct/wrong sound
+      ensureAudio(); playClick();
+    }
+    const rect = el.getBoundingClientRect();
+    const ripple = document.createElement('span');
+    ripple.className = 'btn-ripple';
+    const size = Math.max(rect.width, rect.height) * 1.4;
+    ripple.style.width = ripple.style.height = size + 'px';
+    ripple.style.left = (e.clientX - rect.left) + 'px';
+    ripple.style.top = (e.clientY - rect.top) + 'px';
+    el.appendChild(ripple);
+    setTimeout(()=>ripple.remove(), 500);
+  }, true);
+
   // ---------- MENU ----------
-  function openMenu(){ playClick(); document.getElementById('menuOverlay').classList.add('open'); }
-  function closeMenu(){ playClick(); document.getElementById('menuOverlay').classList.remove('open'); }
+  function openMenu(){ document.getElementById('menuOverlay').classList.add('open'); }
+  function closeMenu(){ document.getElementById('menuOverlay').classList.remove('open'); }
   function restartGame(){ closeMenu(); chooseMode(mode); }
   function goMainMenu(){
     closeMenu();
@@ -834,20 +888,46 @@
   }
 
   // ---------- FLOW ----------
+  // Menu screens play the real Bella Ciao track; the quiz itself stays silent for now
+  // (a separate track for the questioning phase can be dropped in later).
+  const MENU_MUSIC_SCREENS = ['screen-landing','screen-mode','screen-setup','screen-online-hub','screen-online-host','screen-online-join','screen-online-lobby'];
   function swapScreen(id){
     document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
     document.getElementById(id).classList.add('active');
+    const menuMusic = document.getElementById('menuMusic');
+    if(menuMusic){
+      if(MENU_MUSIC_SCREENS.includes(id)){
+        if(!muted && menuMusic.paused){ menuMusic.play().catch(()=>{}); }
+      } else {
+        menuMusic.pause();
+      }
+    }
   }
-  function startFlow(){ playClick(); ensureAudio(); startMusic(); swapScreen('screen-mode'); }
+  function startFlow(){ ensureAudio(); swapScreen('screen-mode'); }
+
+  // Belt-and-suspenders fix for strict mobile autoplay blocking: some browsers only
+  // unlock audio on the very first raw touch/click anywhere on the page, even if
+  // swapScreen() already tried. This catches that first interaction and retries.
+  let audioUnlocked = false;
+  function unlockMenuMusicOnce(){
+    if(audioUnlocked) return;
+    audioUnlocked = true;
+    const menuMusic = document.getElementById('menuMusic');
+    const current = document.querySelector('.screen.active');
+    if(menuMusic && !muted && current && MENU_MUSIC_SCREENS.includes(current.id) && menuMusic.paused){
+      menuMusic.play().catch(()=>{});
+    }
+  }
+  document.addEventListener('click', unlockMenuMusicOnce, { once:true, capture:true });
+  document.addEventListener('touchstart', unlockMenuMusicOnce, { once:true, capture:true });
+  window.addEventListener('DOMContentLoaded', ()=>{ swapScreen('screen-landing'); });
   function chooseMode(m){
-    playClick();
     mode = m;
     document.getElementById('setupSolo').style.display = m==='solo' ? 'block' : 'none';
     document.getElementById('setupTeam').style.display = m==='team' ? 'block' : 'none';
     swapScreen('screen-setup');
   }
   function confirmSetup(){
-    playClick();
     if(mode==='solo'){
       const v = document.getElementById('soloName').value.trim();
       names.solo = v || 'Player';
@@ -990,7 +1070,6 @@
   function useHint(){
     const key = mode==='team' ? currentTeam : 'solo';
     if(hintsLeft[key] <= 0 || answered) return;
-    playClick();
     hintsLeft[key] -= 1;
     document.getElementById('hintText').classList.add('shown');
     updateHintUI();
@@ -1063,7 +1142,8 @@
     if(mode==='online' && window.onOnlineGameFinished){ window.onOnlineGameFinished(onlineScore); }
     swapScreen('screen-results');
     stopMusic();
-    playFanfare();
+    playVaultUnlock();
+    setTimeout(playFanfare, 750);
   }
 </script>
 
